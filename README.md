@@ -1,6 +1,5 @@
 # Yougile CLI
 
-[![npm version](https://img.shields.io/npm/v/yougile-cli.svg)](https://www.npmjs.com/package/yougile-cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Interactive command-line client for [Yougile](https://yougile.com) task management.
@@ -15,7 +14,7 @@ Interactive command-line client for [Yougile](https://yougile.com) task manageme
 ## Installation
 
 ```bash
-npm install -g yougile-cli
+npm install -g github:alfredericks/yougile-cli
 ```
 
 ## Quick Start
