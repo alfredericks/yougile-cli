@@ -6,14 +6,30 @@ import { initCommand } from './commands/init.js';
 import { createCommand } from './commands/create.js';
 import { listCommand } from './commands/list.js';
 import { configCommand } from './commands/config.js';
+import { createProjectsCommand } from './commands/projects.js';
+import { createBoardsCommand } from './commands/boards.js';
+import { createColumnsCommand } from './commands/columns.js';
+import { createTasksCommand } from './commands/tasks.js';
+import { createUsersCommand } from './commands/users.js';
+import { createCompanyCommand } from './commands/company.js';
+import { createDepartmentsCommand } from './commands/departments.js';
+import { createRolesCommand } from './commands/roles.js';
+import { createStickersCommand } from './commands/stickers.js';
+import { createChatsCommand } from './commands/chats.js';
+import { createMessagesCommand } from './commands/messages.js';
+import { createWebhooksCommand } from './commands/webhooks.js';
+import { createFilesCommand } from './commands/files.js';
+import { createCrmCommand } from './commands/crm.js';
+import { createAuthCommand } from './commands/auth.js';
 
 const program = new Command();
 
 program
   .name('yougile')
   .description('Interactive CLI client for Yougile task management')
-  .version('1.0.0');
+  .version('2.0.0');
 
+// Legacy commands (backward compatibility)
 program
   .command('init')
   .description('Configure Yougile CLI with your API key and defaults')
@@ -41,6 +57,23 @@ program
   .alias('cfg')
   .description('View or edit configuration')
   .action(configCommand);
+
+// Resource subcommands
+program.addCommand(createProjectsCommand());
+program.addCommand(createBoardsCommand());
+program.addCommand(createColumnsCommand());
+program.addCommand(createTasksCommand());
+program.addCommand(createUsersCommand());
+program.addCommand(createCompanyCommand());
+program.addCommand(createDepartmentsCommand());
+program.addCommand(createRolesCommand());
+program.addCommand(createStickersCommand());
+program.addCommand(createChatsCommand());
+program.addCommand(createMessagesCommand());
+program.addCommand(createWebhooksCommand());
+program.addCommand(createFilesCommand());
+program.addCommand(createCrmCommand());
+program.addCommand(createAuthCommand());
 
 // Default command - show help or create task
 program

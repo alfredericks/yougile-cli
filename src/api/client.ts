@@ -1,163 +1,120 @@
-import axios, { AxiosInstance } from 'axios';
-import { loadConfig } from '../utils/config.js';
+import { AuthService } from './services/auth.service.js';
+import { UserService } from './services/user.service.js';
+import { CompanyService } from './services/company.service.js';
+import { ProjectService } from './services/project.service.js';
+import { ProjectRoleService } from './services/project-role.service.js';
+import { DepartmentService } from './services/department.service.js';
+import { BoardService } from './services/board.service.js';
+import { ColumnService } from './services/column.service.js';
+import { TaskService } from './services/task.service.js';
+import { StringStickerService } from './services/string-sticker.service.js';
+import { SprintStickerService } from './services/sprint-sticker.service.js';
+import { GroupChatService } from './services/group-chat.service.js';
+import { ChatMessageService } from './services/chat-message.service.js';
+import { WebhookService } from './services/webhook.service.js';
+import { CrmService } from './services/crm.service.js';
+import { FileService } from './services/file.service.js';
+import type { TaskCreateData as _TaskCreateData } from '../types/task.js';
 
-export interface Company {
-  id: string;
-  name: string;
-  isAdmin: boolean;
-}
+// Re-export types for backward compatibility
+export type {
+  ApiListResponse,
+  WithIdResponse,
+} from '../types/common.js';
 
-export interface AuthCredentials {
-  login: string;
-  password: string;
-}
+export type {
+  AuthCredentials,
+  Company,
+} from '../types/auth.js';
 
-export interface Project {
-  id: string;
-  title: string;
-  deleted?: boolean;
-}
+export type {
+  User,
+} from '../types/user.js';
 
-export interface Board {
-  id: string;
-  title: string;
-  projectId: string;
-  deleted?: boolean;
-}
+export type {
+  Project,
+} from '../types/project.js';
 
-export interface Column {
-  id: string;
-  title: string;
-  boardId: string;
-  deleted?: boolean;
-  color?: string;
-}
+export type {
+  Board,
+} from '../types/board.js';
 
-export interface User {
-  id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  realName?: string;
-  isAdmin?: boolean;
-}
+export type {
+  Column,
+} from '../types/column.js';
 
-export interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  columnId: string;
-  assigned?: string[];
-  deadline?: {
-    deadline?: number;
-    startDate?: number;
-    withTime?: boolean;
-  };
-  completed?: boolean;
-  archived?: boolean;
-}
+export type {
+  Task,
+  TaskCreateData,
+} from '../types/task.js';
 
-export interface TaskCreateData {
-  title: string;
-  columnId: string;
-  description?: string;
-  assigned?: string[];
-  deadline?: {
-    deadline?: number;
-    startDate?: number;
-    withTime?: boolean;
-  };
-}
-
-export interface ApiListResponse<T> {
-  content: T[];
-  paging?: {
-    limit: number;
-    offset: number;
-    count: number;
-  };
-}
+// Legacy interfaces kept for backward compatibility
+// (the canonical types now live in src/types/)
 
 class YougileClient {
-  private client: AxiosInstance | null = null;
-  private apiHost = 'https://yougile.com/api-v2/';
+  // Service instances
+  readonly auth = new AuthService();
+  readonly users = new UserService();
+  readonly company = new CompanyService();
+  readonly projects = new ProjectService();
+  readonly projectRoles = new ProjectRoleService();
+  readonly departments = new DepartmentService();
+  readonly boards = new BoardService();
+  readonly columns = new ColumnService();
+  readonly tasks = new TaskService();
+  readonly stringStickers = new StringStickerService();
+  readonly sprintStickers = new SprintStickerService();
+  readonly groupChats = new GroupChatService();
+  readonly chatMessages = new ChatMessageService();
+  readonly webhooks = new WebhookService();
+  readonly crm = new CrmService();
+  readonly files = new FileService();
 
-  // Auth methods (no API key required)
-  async getCompanies(credentials: AuthCredentials): Promise<Company[]> {
-    const response = await axios.post<{ content: Company[] }>(
-      `${this.apiHost}auth/companies`,
-      credentials,
-      { headers: { 'Content-Type': 'application/json' } }
-    );
-    return response.data.content || [];
+  // ---------------------------------------------------------------------------
+  // Backward-compatible wrapper methods
+  // ---------------------------------------------------------------------------
+
+  async getCompanies(credentials: { login: string; password: string }) {
+    const result = await this.auth.getCompanies(credentials);
+    return result.content || [];
   }
 
-  async createApiKey(credentials: AuthCredentials, companyId: string): Promise<string> {
-    const response = await axios.post<{ key: string }>(
-      `${this.apiHost}auth/keys`,
-      { ...credentials, companyId },
-      { headers: { 'Content-Type': 'application/json' } }
-    );
-    return response.data.key;
+  async createApiKey(
+    credentials: { login: string; password: string },
+    companyId: string,
+  ): Promise<string> {
+    const result = await this.auth.createKey({ ...credentials, companyId });
+    return result.key;
   }
 
-  private getClient(): AxiosInstance {
-    if (this.client) return this.client;
-
-    const config = loadConfig();
-    if (!config || !config.apiKey) {
-      throw new Error('API key not configured. Run "yougile init" first.');
-    }
-
-    this.client = axios.create({
-      baseURL: config.apiHost || 'https://yougile.com/api-v2/',
-      headers: {
-        'Authorization': `Bearer ${config.apiKey}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    return this.client;
+  async getProjects() {
+    const result = await this.projects.list();
+    return result.content || [];
   }
 
-  resetClient(): void {
-    this.client = null;
+  async getBoards(projectId?: string) {
+    const result = await this.boards.list(projectId ? { projectId } : undefined);
+    return result.content || [];
   }
 
-  async getProjects(): Promise<Project[]> {
-    const response = await this.getClient().get<ApiListResponse<Project>>('projects');
-    return response.data.content || [];
+  async getColumns(boardId: string) {
+    const result = await this.columns.list({ boardId });
+    return result.content || [];
   }
 
-  async getBoards(projectId?: string): Promise<Board[]> {
-    const params = projectId ? { projectId } : {};
-    const response = await this.getClient().get<ApiListResponse<Board>>('boards', { params });
-    return response.data.content || [];
+  async getUsers() {
+    const result = await this.users.list();
+    return result.content || [];
   }
 
-  async getColumns(boardId: string): Promise<Column[]> {
-    const response = await this.getClient().get<ApiListResponse<Column>>('columns', {
-      params: { boardId },
-    });
-    return response.data.content || [];
+  async createTask(data: _TaskCreateData) {
+    return this.tasks.create(data);
   }
 
-  async getUsers(): Promise<User[]> {
-    const response = await this.getClient().get<ApiListResponse<User>>('users');
-    return response.data.content || [];
-  }
-
-  async createTask(data: TaskCreateData): Promise<{ id: string }> {
-    const response = await this.getClient().post<{ id: string }>('tasks', data);
-    return response.data;
-  }
-
-  async getTasks(columnId?: string, projectId?: string): Promise<Task[]> {
-    const params: Record<string, string> = {};
-    if (columnId) params.columnId = columnId;
-    if (projectId) params.projectId = projectId;
-    const response = await this.getClient().get<ApiListResponse<Task>>('task-list', { params });
-    return response.data.content || [];
+  async getTasks(columnId?: string, _projectId?: string) {
+    const params = columnId ? { columnId } : undefined;
+    const result = await this.tasks.list(params);
+    return result.content || [];
   }
 
   async testConnection(): Promise<boolean> {
@@ -167,6 +124,25 @@ class YougileClient {
     } catch {
       return false;
     }
+  }
+
+  resetClient(): void {
+    this.auth.resetClient();
+    this.users.resetClient();
+    this.company.resetClient();
+    this.projects.resetClient();
+    this.projectRoles.resetClient();
+    this.departments.resetClient();
+    this.boards.resetClient();
+    this.columns.resetClient();
+    this.tasks.resetClient();
+    this.stringStickers.resetClient();
+    this.sprintStickers.resetClient();
+    this.groupChats.resetClient();
+    this.chatMessages.resetClient();
+    this.webhooks.resetClient();
+    this.crm.resetClient();
+    this.files.resetClient();
   }
 }
 

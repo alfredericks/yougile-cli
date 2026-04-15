@@ -1,6 +1,6 @@
 {
   "name": "yougile-cli",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Interactive CLI client for Yougile task management",
   "type": "module",
   "main": "dist/index.js",
